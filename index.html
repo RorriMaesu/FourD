@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4D Hypercube (Tesseract) Visualization</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; color: #fff; font-family: Arial, sans-serif; }
+        canvas { display: block; }
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            z-index: 100;
+            display:block;
+            padding: 10px;
+            background-color: rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        4D Hypercube (Tesseract) Projection<br>
+        Rotating in XW and YZ planes. Drag to rotate the 3D view.
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        let scene, camera, renderer, controls;
+        let hypercubePoints4D = [];
+        let hypercubeEdges = [];
+        let projectedPoints3D = [];
+        let lines;
+
+        const tesseractSize = 1.5; // Size of the hypercube
+        const perspectiveDistance = 4; // Distance for 4D to 3D projection (along W axis)
+        let angleXW = 0;
+        let angleYZ = 0;
+        let angleXY = 0; // For a bit of 3D-like pre-rotation if desired
+        let angleZW = 0;
+
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a1a); // Dark blueish background
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 2); // Soft white light
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            directionalLight.position.set(5, 5, 5).normalize();
+            scene.add(directionalLight);
+
+            // Create Hypercube Geometry
+            createHypercubeVertices();
+            createHypercubeEdges();
+            projectAndDrawHypercube();
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
+
+            animate();
+        }
+
+        function createHypercubeVertices() {
+            hypercubePoints4D = [];
+            for (let i = 0; i < 16; i++) {
+                // Generate 4D coordinates (+/- tesseractSize/2 for each dimension)
+                // This is like counting in binary from 0000 to 1111
+                const x = (i & 1 ? 1 : -1) * tesseractSize / 2;
+                const y = (i & 2 ? 1 : -1) * tesseractSize / 2;
+                const z = (i & 4 ? 1 : -1) * tesseractSize / 2;
+                const w = (i & 8 ? 1 : -1) * tesseractSize / 2;
+                hypercubePoints4D.push([x, y, z, w]);
+            }
+        }
+
+        function createHypercubeEdges() {
+            hypercubeEdges = [];
+            for (let i = 0; i < 16; i++) {
+                for (let j = i + 1; j < 16; j++) {
+                    // Connect vertices if they differ in exactly one coordinate (Hamming distance 1)
+                    let diffCount = 0;
+                    if (hypercubePoints4D[i][0] !== hypercubePoints4D[j][0]) diffCount++;
+                    if (hypercubePoints4D[i][1] !== hypercubePoints4D[j][1]) diffCount++;
+                    if (hypercubePoints4D[i][2] !== hypercubePoints4D[j][2]) diffCount++;
+                    if (hypercubePoints4D[i][3] !== hypercubePoints4D[j][3]) diffCount++;
+                    
+                    if (diffCount === 1) {
+                        hypercubeEdges.push([i, j]);
+                    }
+                }
+            }
+        }
+
+        function rotate4D(point4D, angleXW, angleYZ, angleXY, angleZW) {
+            let [x, y, z, w] = point4D;
+            let newX, newY, newZ, newW;
+
+            // Optional: Pre-rotation in 3D-like planes (XY, YZ, XZ) or other 4D planes
+            // XY rotation
+            newX = x * Math.cos(angleXY) - y * Math.sin(angleXY);
+            newY = x * Math.sin(angleXY) + y * Math.cos(angleXY);
+            x = newX; y = newY;
+
+            // XW rotation
+            newX = x * Math.cos(angleXW) - w * Math.sin(angleXW);
+            newW = x * Math.sin(angleXW) + w * Math.cos(angleXW);
+            x = newX; w = newW;
+
+            // YZ rotation
+            newY = y * Math.cos(angleYZ) - z * Math.sin(angleYZ);
+            newZ = y * Math.sin(angleYZ) + z * Math.cos(angleYZ);
+            y = newY; z = newZ;
+            
+            // ZW rotation
+            newZ = z * Math.cos(angleZW) - w * Math.sin(angleZW);
+            newW = z * Math.sin(angleZW) + w * Math.cos(angleZW);
+            z = newZ; w = newW;
+
+
+            return [x, y, z, w];
+        }
+
+        function project4Dto3D(point4D) {
+            const [x, y, z, w] = point4D;
+            // Perspective projection
+            // The 'w' coordinate affects the divisor, creating perspective.
+            // If (perspectiveDistance - w) is 0 or negative, point is "behind" or at the viewpoint.
+            // Add a small epsilon to avoid division by zero if w happens to be exactly perspectiveDistance.
+            const divisor = perspectiveDistance - w + 0.00001; 
+            
+            // We also scale the projection to make it visible. The perspectiveDistance itself acts as a focal length.
+            const scaleFactor = perspectiveDistance; // Or some other factor if needed
+
+            const x3D = (x * scaleFactor) / divisor;
+            const y3D = (y * scaleFactor) / divisor;
+            const z3D = (z * scaleFactor) / divisor;
+            
+            return new THREE.Vector3(x3D, y3D, z3D);
+        }
+
+        function projectAndDrawHypercube() {
+            projectedPoints3D = [];
+            for (let i = 0; i < hypercubePoints4D.length; i++) {
+                const rotatedPoint = rotate4D(hypercubePoints4D[i], angleXW, angleYZ, angleXY, angleZW);
+                projectedPoints3D.push(project4Dto3D(rotatedPoint));
+            }
+
+            if (lines) {
+                scene.remove(lines); // Remove old lines
+                lines.geometry.dispose();
+                lines.material.dispose();
+            }
+
+            const lineVertices = [];
+            hypercubeEdges.forEach(edge => {
+                lineVertices.push(projectedPoints3D[edge[0]]);
+                lineVertices.push(projectedPoints3D[edge[1]]);
+            });
+
+            const geometry = new THREE.BufferGeometry().setFromPoints(lineVertices);
+            // Use a vibrant, somewhat emissive material for the lines
+            const material = new THREE.LineBasicMaterial({ 
+                color: 0x00ffff, // Cyan
+                linewidth: 2, // Note: linewidth > 1 only works with LineMaterial from examples/jsm/lines, not LineBasicMaterial on all platforms.
+                              // For simplicity, using LineBasicMaterial. On some systems, it will render as 1px.
+                // For thicker lines that work everywhere, you'd need to use THREE.Line2, THREE.LineMaterial, THREE.LineGeometry from examples/jsm/lines/
+            }); 
+            
+            // Create a glowing effect for the lines
+            const glowMaterial = new THREE.LineBasicMaterial({
+                color: 0x99ffff, // Lighter cyan
+                transparent: true,
+                opacity: 0.6,
+                linewidth: 5 // Will likely render as 1px thick due to LineBasicMaterial limitations
+            });
+            
+            lines = new THREE.LineSegments(geometry, material);
+            scene.add(lines);
+
+            // Optional: Add small spheres at vertices for better visualization
+            // This part can be performance intensive if not optimized
+            // For now, focusing on the lines which define the structure
+        }
+
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Increment rotation angles
+            angleXW += 0.005; // Rotation speed in XW plane
+            angleYZ += 0.007; // Rotation speed in YZ plane
+            // angleXY += 0.002; // Optional 3D-like pre-rotation
+            angleZW += 0.003; // Another 4D rotation
+
+            projectAndDrawHypercube();
+            
+            controls.update(); // Only if damping or auto-rotate is enabled
+            renderer.render(scene, camera);
+        }
+
+        init();
+    </script>
+</body>
+</html>
