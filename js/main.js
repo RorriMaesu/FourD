@@ -11,11 +11,13 @@ import { UIManager } from './uiManager.js';
 import * as tesseractSim from './simulations/tesseract.js';
 import * as hyperSphereSim from './simulations/hyperSphere.js';
 import * as slicerSim from './simulations/slicer4D.js';
+import * as classicTesseractSim from './simulations/classicTesseract.js';
 
 // Import simulation classes
 import { TesseractSimulation } from './simulations/tesseract.js';
 import { HyperSphereSimulation } from './simulations/hyperSphere.js';
 import { Slicer4DSimulation } from './simulations/slicer4D.js';
+import { ClassicTesseractSimulation } from './simulations/classicTesseract.js';
 
 // Application class
 class App4D {
@@ -38,13 +40,15 @@ class App4D {
         this.simulations = {
             'tesseract': tesseractSim,
             'hyperSphere': hyperSphereSim,
-            'slicer4D': slicerSim
+            'slicer4D': slicerSim,
+            'classicTesseract': classicTesseractSim
         };
 
         this.simulationClasses = {
             'tesseract': TesseractSimulation,
             'hyperSphere': HyperSphereSimulation,
-            'slicer4D': Slicer4DSimulation
+            'slicer4D': Slicer4DSimulation,
+            'classicTesseract': ClassicTesseractSimulation
         };
 
         this.activeSimulation = null;
