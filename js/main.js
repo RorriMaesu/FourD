@@ -89,7 +89,8 @@ function createMenu() {
     Object.keys(simulations).forEach(simKey => {
         const simModule = simulations[simKey];
         const button = document.createElement('button');
-        button.textContent = simModule.info.title || simKey;
+        // Check if info exists before trying to access its properties
+        button.textContent = (simModule.info && simModule.info.title) ? simModule.info.title : simKey;
         button.dataset.simKey = simKey;
         button.addEventListener('click', () => loadSimulation(simKey));
         menuButtonsContainer.appendChild(button);
@@ -102,7 +103,7 @@ function loadSimulation(simKey) {
         currentCleanupFunction = null;
         currentUpdateFunction = null;
     }
-    
+
     // Clear any previous specific objects not handled by cleanup (if any, though cleanup should handle all)
     // while(scene.children.length > 3){ // Keep camera and lights
     //     const obj = scene.children[scene.children.length -1];
@@ -124,9 +125,9 @@ function loadSimulation(simKey) {
         currentCleanupFunction = simInstance.cleanup;
         currentSimulation = simKey;
 
-        simTitleElement.textContent = simModule.info.title || "Simulation";
-        simDescriptionElement.innerHTML = simModule.info.description || "No description available.";
-        
+        simTitleElement.textContent = (simModule.info && simModule.info.title) ? simModule.info.title : "Simulation";
+        simDescriptionElement.innerHTML = (simModule.info && simModule.info.description) ? simModule.info.description : "No description available.";
+
         // Update active button style
         document.querySelectorAll('#menu-buttons button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.simKey === simKey);
@@ -146,7 +147,7 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
     renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
     composer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight); // Important for post-processing
-    
+
     // If current simulation needs to know about resize (e.g., for LineMaterial resolution)
     // This is a bit of a hack; a better way would be an event system or passing renderer ref.
     if (currentUpdateFunction && simulations[currentSimulation]?.onResize) {

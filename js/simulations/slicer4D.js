@@ -9,7 +9,8 @@ let animatedMesh; // The 3D mesh representing the current slice
 let sliceW = -1.5; // The W-coordinate of our slicing 3D hyperplane
 let rotationAngle = 0;
 
-const info = {
+// Export the info object so it can be accessed before initialization
+export const info = {
     title: "4D Slicer (Tesseract)",
     description: "Visualizes 3D cross-sections of a tesseract as it passes through our 3D 'space' (a hyperplane at a fixed W coordinate). The tesseract is also slowly rotating in 4D. This is analogous to seeing 2D slices of a 3D object like an MRI scan. Observe how the 3D shape of the slice changes."
 };
@@ -71,7 +72,7 @@ function updateSliceVisuals() {
     // Example: let a cube grow and shrink as sliceW moves through the tesseract's extent
     const tesseractCenterW = 0;
     const tesseractHalfWidthW = 1.5 / 2; // for a tesseract of size 1.5
-    
+
     // Calculate how "much" of the tesseract is at the current sliceW
     // This is a very rough approximation
     const distFromCenter = Math.abs(sliceW - tesseractCenterW);
@@ -92,12 +93,12 @@ function update(deltaTime, time) {
 
     // Optionally, rotate the tesseract in 4D before slicing
     rotationAngle += 0.2 * deltaTime;
-    
+
     // This is where real slicing logic would go:
     // 1. Rotate tesseractVertices4D using `rotate4DPoint` (e.g., in 'xy' or 'xw' plane).
     // 2. Compute the 3D slice of the rotated tesseract at the current `sliceW`.
     // 3. Update `animatedMesh.geometry` with the new slice polygon(s).
-    
+
     // For now, just update our placeholder:
     if (animatedMesh) {
         // To make it more interesting, let's project the center of the tesseract
@@ -105,7 +106,7 @@ function update(deltaTime, time) {
         let center4D = [0,0,0,0];
         center4D = rotate4DPoint(center4D, 'xw', rotationAngle);
         center4D = rotate4DPoint(center4D, 'yz', rotationAngle * 0.7);
-        
+
         // Project the center, but "imagine" it's on our slice plane (w=0 in projection space)
         // by setting its w to 0 before projection. The actual slicing uses sliceW.
         const projectedCenter = project4Dto3D([center4D[0], center4D[1], center4D[2], 0]);

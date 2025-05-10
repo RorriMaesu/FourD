@@ -8,7 +8,8 @@ let points4D = [];
 let pointCloud;
 let angleXW = 0, angleYW = 0;
 
-const info = {
+// Export the info object so it can be accessed before initialization
+export const info = {
     title: "Hypersphere Point Cloud",
     description: "A 3-sphere (or glome) is the 4D analogue of a sphere. This visualization shows a cloud of points on its 'surface', projected into 3D. It's rotating in the XW and YW planes. Notice how points seem to emerge from and recede into a central region as they pass through the 'W' dimension relative to our 3D projection space."
 };
@@ -23,7 +24,7 @@ function generatePointsOnHyperSphere() {
         let y = Math.random() * 2 - 1;
         let z = Math.random() * 2 - 1;
         let w = Math.random() * 2 - 1;
-        
+
         // A more robust way for uniform points on n-sphere (using Gaussian samples):
         x = randn_bm(); y = randn_bm(); z = randn_bm(); w = randn_bm();
 
@@ -85,7 +86,7 @@ function updatePoints(time) {
         let p4 = points4D[i];
         p4 = rotate4DPoint(p4, 'xw', angleXW + time * 0.1);
         p4 = rotate4DPoint(p4, 'yw', angleYW + time * 0.15);
-        
+
         const p3 = project4Dto3D(p4);
         positions[i * 3] = p3.x;
         positions[i * 3 + 1] = p3.y;

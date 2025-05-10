@@ -16,7 +16,8 @@ let angleXW = 0;
 let angleYZ = 0;
 let angleZW = 0;
 
-const info = {
+// Export the info object so it can be accessed before initialization
+export const info = {
     title: "Rotating Tesseract",
     description: "A 4-dimensional hypercube (tesseract) projected into 3D space. It's rotating in the XW, YZ, and ZW 4D planes. Observe how the 'inner' cube appears to turn 'inside out' without passing through the faces of the 'outer' cube – a characteristic of 4D rotation."
 };
