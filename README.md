@@ -1,40 +1,56 @@
-# 4D Tesseract Animation
+# Interactive 4D Visualization Suite
 
-An interactive visualization of a 4D hypercube (tesseract) projected into 3D space, built with Three.js.
+A comprehensive suite of interactive 4D visualizations projected into 3D space, built with Three.js.
 
 ## Description
 
-This project visualizes a 4D hypercube (tesseract) by:
-1. Creating the 16 vertices and 32 edges of a 4D hypercube
-2. Applying 4D rotations in various planes (XW, YZ, ZW)
-3. Projecting the 4D object into 3D space using perspective projection
-4. Rendering the result with Three.js
+This project provides multiple interactive visualizations to help understand 4D geometry:
+
+1. **Rotating Tesseract**: A 4D hypercube rotating in multiple 4D planes
+2. **Hypersphere Point Cloud**: A 3-sphere (glome) represented as points on its 4D surface
+3. **4D Slicer**: Visualizing 3D cross-sections of a 4D object as it passes through our 3D space
 
 ## Features
 
-- Real-time 4D to 3D projection
+- Real-time 4D to 3D projection with perspective
 - Interactive 3D camera controls (drag to rotate, scroll to zoom)
-- Smooth animations with multiple rotation planes
-- Clean, modern visual style with glowing edges
+- Multiple 4D rotation planes (XW, YZ, ZW, etc.)
+- Stunning visuals with post-processing effects
+- Clean, modern UI with simulation descriptions
+- Modular architecture for easy addition of new 4D visualizations
 
 ## Live Demo
 
-Visit the [live demo](https://RorriMaesu.github.io/FourD/) to see the tesseract in action.
+Visit the [live demo](https://RorriMaesu.github.io/FourD/) to explore the 4D visualizations.
 
 ## Technologies Used
 
-- HTML5
-- JavaScript
+- HTML5 & CSS3
+- JavaScript (ES6+)
 - Three.js for 3D rendering
+- Post-processing with EffectComposer and UnrealBloomPass
+- Advanced line rendering with Line2 and LineMaterial
 
 ## How It Works
 
-The visualization works by:
-1. Defining the 16 vertices of a 4D hypercube
-2. Creating edges between vertices that differ in exactly one coordinate
-3. Applying 4D rotations to the vertices
-4. Projecting the rotated 4D points into 3D using perspective projection
-5. Rendering the projected structure using Three.js
+Each visualization demonstrates different aspects of 4D geometry:
+
+### Tesseract
+- Generates the 16 vertices and 32 edges of a 4D hypercube
+- Applies simultaneous rotations in multiple 4D planes
+- Projects the rotated 4D points into 3D using perspective projection
+- Renders with thick, glowing lines for better visualization
+
+### Hypersphere
+- Creates points uniformly distributed on the surface of a 4D sphere
+- Rotates the points in 4D space
+- Colors each point based on its W-coordinate to provide visual depth
+- Demonstrates how points appear to emerge from and recede into a central region
+
+### 4D Slicer
+- Shows 3D cross-sections of a 4D object (analogous to MRI slices of a 3D object)
+- Animates the slice plane moving through the 4D object
+- Visualizes how the 3D shape changes as the slice moves through the 4D space
 
 ## License
 
