@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive 4D Visualization Suite</title>
-    <link rel="stylesheet" href="style.css">
+    <title>4D Hyperflow Explorer</title>
+    <link rel="stylesheet" href="css/main.css">
     <script type="importmap">
         {
             "imports": {
@@ -15,19 +15,34 @@
     </script>
 </head>
 <body>
-    <div id="menu-container">
-        <h1>4D Visualization Suite</h1>
-        <div id="menu-buttons">
-            <!-- Buttons will be dynamically added here -->
-        </div>
-        <div id="simulation-info">
-            <h2 id="sim-title">Welcome!</h2>
-            <p id="sim-description">Select a simulation from the menu to begin exploring the 4th dimension. Use your mouse to rotate the 3D view.</p>
-        </div>
-    </div>
+    <div id="app-container">
+        <div id="menu-container">
+            <div class="app-header">
+                <h1>4D Hyperflow Explorer</h1>
+                <p>Visualize and interact with the fourth dimension</p>
+            </div>
 
-    <div id="canvas-container">
-        <!-- Three.js canvas will be appended here -->
+            <div id="menu-buttons">
+                <!-- Buttons will be dynamically added here -->
+            </div>
+
+            <div id="simulation-info">
+                <h2 id="sim-title">Welcome!</h2>
+                <p id="sim-description">Select a simulation from the menu to begin exploring the 4th dimension. Use your mouse to rotate the 3D view.</p>
+            </div>
+
+            <div id="controls-container">
+                <!-- Controls will be dynamically added here -->
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <!-- Three.js canvas will be appended here -->
+        </div>
+
+        <div id="loading-overlay" style="display: none;">
+            <div class="spinner"></div>
+        </div>
     </div>
 
     <script type="module" src="js/main.js"></script>

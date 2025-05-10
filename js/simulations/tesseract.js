@@ -1,102 +1,211 @@
 // js/simulations/tesseract.js
 import * as THREE from 'three';
-import { rotate4DPoint, project4Dto3D, generateHypercubeEdges } from '../utils4D.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
 import { Line2 } from 'three/addons/lines/Line2.js';
-
+import { BaseSimulation } from './baseSimulation.js';
+import { generateTesseractVertices, generateHypercubeEdges, rotate4DPointN, project4Dto3D } from '../utils/math4D.js';
 
 const TESSERACT_SIZE = 1.5;
-let points4D = [];
-let edges = [];
-let projectedPoints3D = [];
-let lineMesh;
 
-let angleXW = 0;
-let angleYZ = 0;
-let angleZW = 0;
+export class TesseractSimulation extends BaseSimulation {
+    constructor(scene, rendererSize) {
+        super(scene, rendererSize);
 
-// Export the info object so it can be accessed before initialization
+        this.points4D = [];
+        this.edges = [];
+        this.projectedPoints3D = [];
+        this.lineMesh = null;
+        this.vertexMeshes = [];
+
+        // Rotation angles and speeds
+        this.angles = { xw: 0, yz: 0, zw: 0, xy: 0 };
+        this.rotationSpeeds = { xw: 0.5, yz: 0.7, zw: 0.3, xy: 0.1 };
+        this.wPerspectiveDistance = 4.0;
+
+        // Override base info
+        this.info = {
+            title: "Tesseract Explorer",
+            description: "A 4-dimensional hypercube (tesseract) projected into 3D space. Control its rotation in 6 different 4D planes. Observe how it appears to turn 'inside out' – a characteristic of 4D rotation. Edges and vertices are rendered with high-quality materials."
+        };
+    }
+
+    initialize() {
+        this.generateGeometryData();
+        this.createThreeObject();
+        return this;
+    }
+
+    generateGeometryData() {
+        // Generate tesseract vertices
+        this.points4D = generateTesseractVertices(TESSERACT_SIZE);
+
+        // Generate edges between vertices
+        this.edges = generateHypercubeEdges(this.points4D);
+
+        // Initial projection to 3D
+        this.projectedPoints3D = this.points4D.map(p => project4Dto3D(p, this.wPerspectiveDistance));
+    }
+
+    createThreeObject() {
+        // Create edges with LineMaterial for high-quality lines
+        const linePositions = [];
+        this.edges.forEach(edge => {
+            linePositions.push(
+                ...this.projectedPoints3D[edge[0]].toArray(),
+                ...this.projectedPoints3D[edge[1]].toArray()
+            );
+        });
+
+        const lineGeometry = new LineGeometry();
+        lineGeometry.setPositions(linePositions);
+
+        this.lineMaterial = new LineMaterial({
+            color: 0x00ddff,
+            linewidth: 0.0035, // In world units
+            transparent: true,
+            opacity: 0.9,
+            dashed: false,
+        });
+        this.lineMaterial.resolution.set(this.rendererSize.width, this.rendererSize.height);
+
+        this.lineMesh = new Line2(lineGeometry, this.lineMaterial);
+        this.lineMesh.computeLineDistances();
+        this.group.add(this.lineMesh);
+
+        // Create vertices with PBR material
+        const vertexGeometry = new THREE.SphereGeometry(0.05, 16, 12);
+        const vertexMaterial = new THREE.MeshStandardMaterial({
+            color: 0xffaa00,
+            metalness: 0.6,
+            roughness: 0.3,
+            emissive: 0x221100, // Slight glow
+        });
+
+        this.vertexMeshes = [];
+        for (let i = 0; i < this.points4D.length; i++) {
+            const vertexMesh = new THREE.Mesh(vertexGeometry, vertexMaterial.clone());
+            vertexMesh.position.copy(this.projectedPoints3D[i]);
+            this.vertexMeshes.push(vertexMesh);
+            this.group.add(vertexMesh);
+        }
+    }
+
+    update(deltaTime, time, uiParams = {}) {
+        super.update(deltaTime, time, uiParams);
+
+        // Update rotation angles from UI parameters or use default speeds
+        this.angles.xw += (uiParams.rotationSpeeds?.xw ?? this.rotationSpeeds.xw) * deltaTime;
+        this.angles.yz += (uiParams.rotationSpeeds?.yz ?? this.rotationSpeeds.yz) * deltaTime;
+        this.angles.zw += (uiParams.rotationSpeeds?.zw ?? this.rotationSpeeds.zw) * deltaTime;
+        this.angles.xy += (uiParams.rotationSpeeds?.xy ?? this.rotationSpeeds.xy) * deltaTime;
+
+        // Update W perspective distance if provided
+        this.wPerspectiveDistance = uiParams.wPerspectiveDistance ?? this.wPerspectiveDistance;
+
+        // Rotate and project points
+        this.projectedPoints3D = [];
+        const linePositions = [];
+
+        this.points4D.forEach((p4_orig, index) => {
+            // Rotate the point in 4D
+            const p4 = rotate4DPointN([...p4_orig], this.angles);
+
+            // Project to 3D
+            const p3 = project4Dto3D(p4, this.wPerspectiveDistance);
+            this.projectedPoints3D.push(p3);
+
+            // Update vertex position
+            this.vertexMeshes[index].position.copy(p3);
+
+            // Color vertex based on W coordinate
+            const w_norm = (p4[3] + TESSERACT_SIZE/2) / TESSERACT_SIZE;
+            this.vertexMeshes[index].material.color.setHSL(0.08 + w_norm * 0.05, 0.9, 0.5);
+        });
+
+        // Update line positions
+        this.edges.forEach(edge => {
+            linePositions.push(
+                ...this.projectedPoints3D[edge[0]].toArray(),
+                ...this.projectedPoints3D[edge[1]].toArray()
+            );
+        });
+
+        this.lineMesh.geometry.setPositions(linePositions);
+        this.lineMesh.computeLineDistances();
+    }
+
+    onResize(newRendererSize) {
+        super.onResize(newRendererSize);
+        if (this.lineMaterial) {
+            this.lineMaterial.resolution.set(newRendererSize.width, newRendererSize.height);
+        }
+    }
+
+    getUIControls() {
+        return [
+            {
+                type: 'slider',
+                id: 'rotationSpeeds.xw',
+                label: 'XW Rotation Speed',
+                min: -1,
+                max: 1,
+                step: 0.01,
+                defaultValue: this.rotationSpeeds.xw
+            },
+            {
+                type: 'slider',
+                id: 'rotationSpeeds.yz',
+                label: 'YZ Rotation Speed',
+                min: -1,
+                max: 1,
+                step: 0.01,
+                defaultValue: this.rotationSpeeds.yz
+            },
+            {
+                type: 'slider',
+                id: 'rotationSpeeds.zw',
+                label: 'ZW Rotation Speed',
+                min: -1,
+                max: 1,
+                step: 0.01,
+                defaultValue: this.rotationSpeeds.zw
+            },
+            {
+                type: 'slider',
+                id: 'rotationSpeeds.xy',
+                label: 'XY Rotation Speed',
+                min: -1,
+                max: 1,
+                step: 0.01,
+                defaultValue: this.rotationSpeeds.xy
+            },
+            {
+                type: 'slider',
+                id: 'wPerspectiveDistance',
+                label: 'W Perspective Distance',
+                min: 1,
+                max: 10,
+                step: 0.1,
+                defaultValue: this.wPerspectiveDistance
+            }
+        ];
+    }
+}
+
+// For backward compatibility
 export const info = {
-    title: "Rotating Tesseract",
-    description: "A 4-dimensional hypercube (tesseract) projected into 3D space. It's rotating in the XW, YZ, and ZW 4D planes. Observe how the 'inner' cube appears to turn 'inside out' without passing through the faces of the 'outer' cube – a characteristic of 4D rotation."
+    title: "Tesseract Explorer",
+    description: "A 4-dimensional hypercube (tesseract) projected into 3D space. Control its rotation in 6 different 4D planes. Observe how it appears to turn 'inside out' – a characteristic of 4D rotation. Edges and vertices are rendered with high-quality materials."
 };
 
-function generateVertices() {
-    points4D = [];
-    for (let i = 0; i < 16; i++) {
-        points4D.push([
-            (i & 1 ? 1 : -1) * TESSERACT_SIZE / 2,
-            (i & 2 ? 1 : -1) * TESSERACT_SIZE / 2,
-            (i & 4 ? 1 : -1) * TESSERACT_SIZE / 2,
-            (i & 8 ? 1 : -1) * TESSERACT_SIZE / 2
-        ]);
-    }
-}
-
 export function initialize(scene, rendererSize) {
-    generateVertices();
-    edges = generateHypercubeEdges(points4D);
-    projectedPoints3D = points4D.map(p => project4Dto3D(p));
+    const simulation = new TesseractSimulation(scene, rendererSize);
+    simulation.initialize();
 
-    const positions = [];
-    edges.forEach(edge => {
-        positions.push(...projectedPoints3D[edge[0]].toArray());
-        positions.push(...projectedPoints3D[edge[1]].toArray());
-    });
-
-    const lineGeometry = new LineGeometry();
-    lineGeometry.setPositions(positions);
-
-    const lineMaterial = new LineMaterial({
-        color: 0x00ffff, // Cyan
-        linewidth: 0.003, // in world units. Adjust based on your scene scale
-        dashed: false,
-        transparent: true,
-        opacity: 0.8,
-    });
-    lineMaterial.resolution.set(rendererSize.width, rendererSize.height); // for correct linewidth
-
-    lineMesh = new Line2(lineGeometry, lineMaterial);
-    lineMesh.computeLineDistances(); // Important for LineMaterial
-    lineMesh.scale.set(1, 1, 1);
-    scene.add(lineMesh);
-
-    return { update, cleanup, info };
-}
-
-function update(deltaTime, time, rendererSize) {
-    angleXW += 0.5 * deltaTime;
-    angleYZ += 0.7 * deltaTime;
-    angleZW += 0.3 * deltaTime;
-
-    projectedPoints3D = [];
-    for (let i = 0; i < points4D.length; i++) {
-        let p = points4D[i];
-        p = rotate4DPoint(p, 'xw', angleXW);
-        p = rotate4DPoint(p, 'yz', angleYZ);
-        p = rotate4DPoint(p, 'zw', angleZW);
-        projectedPoints3D.push(project4Dto3D(p));
-    }
-
-    const positions = [];
-    edges.forEach(edge => {
-        positions.push(...projectedPoints3D[edge[0]].toArray());
-        positions.push(...projectedPoints3D[edge[1]].toArray());
-    });
-    lineMesh.geometry.setPositions(positions);
-    lineMesh.computeLineDistances();
-    lineMesh.material.resolution.set(rendererSize.width, rendererSize.height); // Update resolution if window resizes
-}
-
-function cleanup(scene) {
-    if (lineMesh) {
-        scene.remove(lineMesh);
-        lineMesh.geometry.dispose();
-        lineMesh.material.dispose();
-        lineMesh = null;
-    }
-    points4D = [];
-    edges = [];
-    projectedPoints3D = [];
+    return {
+        update: (deltaTime, time, rendererSize) => simulation.update(deltaTime, time, { rendererSize }),
+        cleanup: () => simulation.cleanup(),
+        info: simulation.info
+    };
 }
