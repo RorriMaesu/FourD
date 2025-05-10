@@ -6,18 +6,34 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 // --- Simulation Modules ---
-// Dynamically import them or list them here for build tools
-// For simplicity in this example, we'll import them directly.
-// In a larger app, you might use dynamic imports.
+// Import the modules directly
 import * as tesseractSim from './simulations/tesseract.js';
 import * as hyperSphereSim from './simulations/hyperSphere.js';
 import * as slicerSim from './simulations/slicer4D.js';
 
+// Create the simulations object with hardcoded titles for safety
 const simulations = {
-    'tesseract': tesseractSim,
-    'hyperSphere': hyperSphereSim,
-    'slicer4D': slicerSim
-    // Add more simulations here
+    'tesseract': {
+        ...tesseractSim,
+        info: {
+            title: "Rotating Tesseract",
+            description: "A 4-dimensional hypercube (tesseract) projected into 3D space. It's rotating in the XW, YZ, and ZW 4D planes. Observe how the 'inner' cube appears to turn 'inside out' without passing through the faces of the 'outer' cube – a characteristic of 4D rotation."
+        }
+    },
+    'hyperSphere': {
+        ...hyperSphereSim,
+        info: {
+            title: "Hypersphere Point Cloud",
+            description: "A 3-sphere (or glome) is the 4D analogue of a sphere. This visualization shows a cloud of points on its 'surface', projected into 3D. It's rotating in the XW and YW planes. Notice how points seem to emerge from and recede into a central region as they pass through the 'W' dimension relative to our 3D projection space."
+        }
+    },
+    'slicer4D': {
+        ...slicerSim,
+        info: {
+            title: "4D Slicer (Tesseract)",
+            description: "Visualizes 3D cross-sections of a tesseract as it passes through our 3D 'space' (a hyperplane at a fixed W coordinate). The tesseract is also slowly rotating in 4D. This is analogous to seeing 2D slices of a 3D object like an MRI scan. Observe how the 3D shape of the slice changes."
+        }
+    }
 };
 
 let scene, camera, renderer, controls, composer;
@@ -89,8 +105,9 @@ function createMenu() {
     Object.keys(simulations).forEach(simKey => {
         const simModule = simulations[simKey];
         const button = document.createElement('button');
-        // Check if info exists before trying to access its properties
-        button.textContent = (simModule.info && simModule.info.title) ? simModule.info.title : simKey;
+
+        // Get the title from the info object or use the key as fallback
+        button.textContent = simModule.info?.title || simKey;
         button.dataset.simKey = simKey;
         button.addEventListener('click', () => loadSimulation(simKey));
         menuButtonsContainer.appendChild(button);
@@ -125,8 +142,9 @@ function loadSimulation(simKey) {
         currentCleanupFunction = simInstance.cleanup;
         currentSimulation = simKey;
 
-        simTitleElement.textContent = (simModule.info && simModule.info.title) ? simModule.info.title : "Simulation";
-        simDescriptionElement.innerHTML = (simModule.info && simModule.info.description) ? simModule.info.description : "No description available.";
+        // Set title and description from the simulation module's info
+        simTitleElement.textContent = simModule.info?.title || "Simulation: " + simKey;
+        simDescriptionElement.innerHTML = simModule.info?.description || "Running simulation...";
 
         // Update active button style
         document.querySelectorAll('#menu-buttons button').forEach(btn => {

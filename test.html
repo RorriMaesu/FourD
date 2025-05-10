@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test 4D Visualization</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        #test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow: auto;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #log {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="test-container">
+        <h1>4D Visualization Test</h1>
+        
+        <div>
+            <button id="test-imports">Test Imports</button>
+            <button id="test-tesseract">Test Tesseract</button>
+            <button id="test-hypersphere">Test Hypersphere</button>
+            <button id="test-slicer">Test Slicer</button>
+            <button id="clear-log">Clear Log</button>
+        </div>
+        
+        <div id="log"></div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        
+        // Import the modules to test
+        import * as tesseractSim from './js/simulations/tesseract.js';
+        import * as hyperSphereSim from './js/simulations/hyperSphere.js';
+        import * as slicerSim from './js/simulations/slicer4D.js';
+        import * as utils4D from './js/utils4D.js';
+        
+        const logElement = document.getElementById('log');
+        
+        // Override console.log to also display in our log element
+        const originalLog = console.log;
+        console.log = function() {
+            // Call the original console.log
+            originalLog.apply(console, arguments);
+            
+            // Add to our log element
+            const args = Array.from(arguments);
+            const message = args.map(arg => {
+                if (typeof arg === 'object') {
+                    return JSON.stringify(arg, null, 2);
+                }
+                return String(arg);
+            }).join(' ');
+            
+            const logLine = document.createElement('div');
+            logLine.textContent = message;
+            logElement.appendChild(logLine);
+            logElement.scrollTop = logElement.scrollHeight;
+        };
+        
+        // Test functions
+        function testImports() {
+            console.log('--- Testing Imports ---');
+            console.log('tesseractSim:', tesseractSim);
+            console.log('hyperSphereSim:', hyperSphereSim);
+            console.log('slicerSim:', slicerSim);
+            console.log('utils4D:', utils4D);
+        }
+        
+        function testTesseract() {
+            console.log('--- Testing Tesseract ---');
+            console.log('tesseractSim.info:', tesseractSim.info);
+            console.log('tesseractSim.initialize:', tesseractSim.initialize);
+        }
+        
+        function testHypersphere() {
+            console.log('--- Testing Hypersphere ---');
+            console.log('hyperSphereSim.info:', hyperSphereSim.info);
+            console.log('hyperSphereSim.initialize:', hyperSphereSim.initialize);
+        }
+        
+        function testSlicer() {
+            console.log('--- Testing Slicer ---');
+            console.log('slicerSim.info:', slicerSim.info);
+            console.log('slicerSim.initialize:', slicerSim.initialize);
+        }
+        
+        function clearLog() {
+            logElement.innerHTML = '';
+        }
+        
+        // Set up button event listeners
+        document.getElementById('test-imports').addEventListener('click', testImports);
+        document.getElementById('test-tesseract').addEventListener('click', testTesseract);
+        document.getElementById('test-hypersphere').addEventListener('click', testHypersphere);
+        document.getElementById('test-slicer').addEventListener('click', testSlicer);
+        document.getElementById('clear-log').addEventListener('click', clearLog);
+        
+        // Run initial test
+        testImports();
+    </script>
+</body>
+</html>
