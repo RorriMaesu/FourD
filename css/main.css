@@ -312,6 +312,7 @@ canvas {
     white-space: nowrap;
     max-width: 100%;
     overflow: visible;
+    text-align: center;
 }
 
 .coffee-button:hover {
@@ -380,16 +381,23 @@ canvas {
     #menu-container {
         width: 100%;
         height: auto;
-        max-height: 40%;
+        max-height: 45%;
         min-height: 250px;
-        padding: 10px;
+        padding: 10px 5px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     #canvas-container {
-        height: 60%;
+        height: 55%;
     }
 
     /* Adjust header for mobile */
+    .app-header {
+        padding: 5px 0;
+        margin-bottom: 10px;
+    }
+
     .app-header h1 {
         font-size: 1.4em;
         margin-bottom: 5px;
@@ -399,32 +407,57 @@ canvas {
     .app-header p {
         font-size: 0.8em;
         margin-bottom: 8px;
+        padding: 0 10px;
     }
 
-    /* Make buttons more compact */
+    /* Make buttons more compact and mobile-friendly */
+    #menu-buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        padding: 0 5px;
+    }
+
     #menu-buttons button {
-        padding: 8px 10px;
-        margin-bottom: 6px;
-        font-size: 0.9em;
+        padding: 10px;
+        margin-bottom: 8px;
+        font-size: 0.95em;
+        width: 90%;
+        max-width: 300px;
+        border-radius: 8px;
+        text-align: center;
     }
 
     /* Adjust simulation info */
     #simulation-info {
-        padding: 10px;
-        margin-top: 10px;
+        padding: 10px 5px;
+        margin-top: 5px;
     }
 
     #simulation-info h2 {
         font-size: 1em;
+        text-align: center;
     }
 
     #simulation-info p {
         font-size: 0.8em;
+        text-align: center;
+        padding: 0 10px;
     }
 
     /* Adjust controls */
+    #controls-container {
+        padding: 5px;
+    }
+
     #controls-container h3 {
         font-size: 1em;
+        text-align: center;
+    }
+
+    .control-group {
+        margin-bottom: 8px;
     }
 
     .control-label {
@@ -433,31 +466,92 @@ canvas {
 
     /* Optimize Buy Me a Coffee button */
     .coffee-button {
-        padding: 6px 12px;
-        font-size: 0.8em;
-        width: auto;
-        max-width: 90%;
+        padding: 10px 15px;
+        font-size: 0.9em;
+        width: 90%;
+        max-width: 300px;
+        margin: 10px auto;
+        display: block;
+        text-align: center;
+        border-radius: 8px;
     }
+
+    .coffee-button img {
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+}
+
+/* Mobile-specific coffee button */
+.mobile-coffee-button {
+    display: block;
+    background-color: #FFDD00;
+    color: #000000;
+    font-weight: bold;
+    padding: 10px 15px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    font-size: 0.9em;
+    white-space: nowrap;
+    width: 90%;
+    max-width: 300px;
+    margin: 10px auto;
+    text-align: center;
+}
+
+.mobile-coffee-button:hover {
+    background-color: #FFE44D;
+    transform: translateY(-2px);
+}
+
+.mobile-coffee-button:active {
+    transform: translateY(0);
+}
+
+.mobile-coffee-button img {
+    vertical-align: middle;
+    margin-right: 8px;
 }
 
 /* Small mobile devices */
 @media (max-width: 480px) {
     #menu-container {
         min-height: 200px;
-        max-height: 45%;
+        max-height: 50%;
+        padding: 5px 2px;
     }
 
     .app-header h1 {
         font-size: 1.2em;
+        margin-bottom: 3px;
     }
 
-    /* Make the Buy Me a Coffee button more compact */
-    .coffee-button {
-        padding: 5px 10px;
+    .app-header p {
+        font-size: 0.75em;
+        margin-bottom: 5px;
     }
 
-    .coffee-button img {
-        width: 14px;
-        height: 14px;
+    /* Make the Buy Me a Coffee button more compact but still easily tappable */
+    .coffee-button, .mobile-coffee-button {
+        padding: 8px 12px;
+        font-size: 0.85em;
+        width: 85%;
+    }
+
+    .coffee-button img, .mobile-coffee-button img {
+        width: 16px;
+        height: 16px;
+        margin-right: 5px;
+    }
+
+    #menu-buttons button {
+        padding: 8px;
+        margin-bottom: 6px;
+        font-size: 0.9em;
+        width: 85%;
     }
 }
