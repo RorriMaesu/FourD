@@ -52,6 +52,14 @@ Each visualization demonstrates different aspects of 4D geometry:
 - Animates the slice plane moving through the 4D object
 - Visualizes how the 3D shape changes as the slice moves through the 4D space
 
+## Support This Project
+
+If you find this project helpful or educational, consider buying me a coffee!
+
+<a href="https://buymeacoffee.com/rorrimaesu" target="_blank">
+  <img src="assets/buymeacoffee.svg" alt="Buy Me A Coffee" width="210" height="60">
+</a>
+
 ## License
 
 MIT License
