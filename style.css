@@ -1,0 +1,89 @@
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #000;
+    color: #eee;
+    display: flex;
+    overflow: hidden; /* Prevent scrollbars */
+    height: 100vh;
+}
+
+#menu-container {
+    width: 280px;
+    padding: 20px;
+    background-color: rgba(10, 10, 30, 0.85);
+    box-shadow: 5px 0px 15px rgba(0,0,0,0.5);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+#menu-container h1 {
+    color: #61dafb;
+    font-size: 1.8em;
+    margin-top: 0;
+    text-align: center;
+    border-bottom: 1px solid #61dafb22;
+    padding-bottom: 10px;
+}
+
+#menu-buttons button {
+    display: block;
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    background-color: #282c34;
+    color: #efefef;
+    border: 1px solid #444953;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+#menu-buttons button:hover {
+    background-color: #3a3f47;
+}
+
+#menu-buttons button:active {
+    transform: scale(0.98);
+}
+
+#menu-buttons button.active {
+    background-color: #61dafb;
+    color: #1c1e22;
+    font-weight: bold;
+    border-color: #61dafb;
+}
+
+
+#simulation-info {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: rgba(20, 20, 40, 0.5);
+    border-radius: 5px;
+    border: 1px solid #61dafb33;
+}
+
+#simulation-info h2 {
+    color: #90caf9;
+    margin-top: 0;
+    font-size: 1.2em;
+}
+
+#simulation-info p {
+    font-size: 0.9em;
+    line-height: 1.5;
+    color: #ccc;
+}
+
+
+#canvas-container {
+    flex-grow: 1; /* Takes remaining space */
+    position: relative; /* For potential overlays if needed */
+}
+
+canvas {
+    display: block; /* Removes bottom space under canvas */
+}
